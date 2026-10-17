@@ -1,0 +1,126 @@
+<section class="gdrive-gallery-folder py-4 w-100">
+  <header class="mb-4">
+    {{if .ParentURL}}<p class="mb-2"><a href="{{.ParentURL}}">← {{.ParentTitle}}</a></p>{{end}}
+    <h1 class="mb-2">{{.Title}}</h1>
+    {{if .Description}}<div class="lead text-muted gdrive-gallery-desc">{{nl2br .Description}}</div>{{end}}
+  </header>
+
+  {{if .ChildFolders}}
+  <div class="mb-4">
+    <h2 class="h5">Albums</h2>
+    <ul class="list-unstyled d-flex flex-wrap gap-3 mb-0">
+      {{range .ChildFolders}}
+      <li><a class="btn btn-outline-secondary btn-sm" href="{{.URL}}">{{.Title}}</a></li>
+      {{end}}
+    </ul>
+  </div>
+  {{end}}
+
+  <div class="row g-3 gdrive-gallery-grid" id="gdrive-gallery-grid">
+    {{range $i, $img := .Images}}
+    <div class="col-6 col-md-4 col-lg-3">
+      <figure class="mb-0">
+        <button type="button"
+          class="gdrive-gallery-thumb btn p-0 border-0 bg-transparent w-100 text-start"
+          data-gallery-index="{{$i}}"
+          data-full-src="{{$img.ViewURL}}"
+          data-thumb-src="{{$img.ThumbURL}}"
+          data-caption="{{if $img.Description}}{{$img.Description}}{{else}}{{$img.Name}}{{end}}"
+          aria-label="View larger image: {{$img.Name}}">
+          <img class="img-fluid rounded w-100" src="{{$img.ThumbURL}}" alt="{{$img.Name}}" loading="lazy">
+        </button>
+        {{if $img.Description}}<figcaption class="small text-muted mt-1">{{$img.Description}}</figcaption>{{end}}
+      </figure>
+    </div>
+    {{else}}
+    <div class="col-12"><div class="alert alert-info mb-0">No photos in this gallery yet.</div></div>
+    {{end}}
+  </div>
+</section>
+
+{{if .Images}}
+<div class="gdrive-lightbox" id="gdrive-lightbox" hidden>
+  <div class="gdrive-lightbox__backdrop" data-lightbox-close tabindex="-1"></div>
+  <div class="gdrive-lightbox__dialog" role="dialog" aria-modal="true" aria-label="Image viewer">
+    <button type="button" class="gdrive-lightbox__close" data-lightbox-close aria-label="Close">&times;</button>
+    <button type="button" class="gdrive-lightbox__nav gdrive-lightbox__prev" data-lightbox-prev aria-label="Previous image">‹</button>
+    <figure class="gdrive-lightbox__figure">
+      <img class="gdrive-lightbox__img" id="gdrive-lightbox-img" alt="">
+      <figcaption class="gdrive-lightbox__caption" id="gdrive-lightbox-caption"></figcaption>
+    </figure>
+    <button type="button" class="gdrive-lightbox__nav gdrive-lightbox__next" data-lightbox-next aria-label="Next image">›</button>
+  </div>
+</div>
+
+<style>
+.gdrive-gallery-thumb{cursor:zoom-in;display:block;line-height:0}
+.gdrive-gallery-thumb img{transition:opacity .15s ease,transform .15s ease}
+.gdrive-gallery-thumb:hover img,.gdrive-gallery-thumb:focus-visible img{opacity:.92;transform:scale(1.01)}
+.gdrive-gallery-thumb:focus-visible{outline:3px solid currentColor;outline-offset:3px}
+.gdrive-lightbox{position:fixed;inset:0;z-index:1080;display:flex;align-items:center;justify-content:center;padding:1.25rem}
+.gdrive-lightbox[hidden]{display:none!important}
+.gdrive-lightbox__backdrop{position:absolute;inset:0;background:rgba(12,16,20,.88)}
+.gdrive-lightbox__dialog{position:relative;z-index:1;display:flex;align-items:center;justify-content:center;max-width:min(1120px,100%);max-height:100%;width:100%}
+.gdrive-lightbox__figure{margin:0;max-width:100%;text-align:center}
+.gdrive-lightbox__img{display:block;max-width:100%;max-height:min(82vh,900px);width:auto;height:auto;margin:0 auto;border-radius:.35rem;box-shadow:0 12px 40px rgba(0,0,0,.45);background:#111}
+.gdrive-lightbox__caption{margin-top:.75rem;color:#f4f4f5;font-size:.95rem;line-height:1.45}
+.gdrive-lightbox__close,.gdrive-lightbox__nav{position:absolute;border:0;background:rgba(255,255,255,.12);color:#fff;border-radius:999px;cursor:pointer;line-height:1;backdrop-filter:blur(4px)}
+.gdrive-lightbox__close{top:.25rem;right:.25rem;width:2.5rem;height:2.5rem;font-size:1.75rem}
+.gdrive-lightbox__nav{top:50%;transform:translateY(-50%);width:2.75rem;height:2.75rem;font-size:1.75rem}
+.gdrive-lightbox__prev{left:.25rem}
+.gdrive-lightbox__next{right:.25rem}
+.gdrive-lightbox__close:hover,.gdrive-lightbox__nav:hover,.gdrive-lightbox__close:focus-visible,.gdrive-lightbox__nav:focus-visible{background:rgba(255,255,255,.22);outline:none}
+body.gdrive-lightbox-open{overflow:hidden}
+@media (max-width:700px){
+  .gdrive-lightbox{padding:.5rem}
+  .gdrive-lightbox__nav{width:2.25rem;height:2.25rem}
+  .gdrive-lightbox__caption{font-size:.875rem}
+}
+</style>
+
+<script>
+(function () {
+  var root = document.getElementById('gdrive-lightbox');
+  if (!root) return;
+  var img = document.getElementById('gdrive-lightbox-img');
+  var caption = document.getElementById('gdrive-lightbox-caption');
+  var items = Array.prototype.slice.call(document.querySelectorAll('#gdrive-gallery-grid [data-gallery-index]'));
+  if (!items.length) return;
+  var index = 0;
+
+  function openAt(i) {
+    index = (i + items.length) % items.length;
+    var el = items[index];
+    img.src = el.getAttribute('data-full-src') || el.getAttribute('data-thumb-src') || '';
+    img.alt = el.getAttribute('data-caption') || '';
+    caption.textContent = el.getAttribute('data-caption') || '';
+    root.hidden = false;
+    document.body.classList.add('gdrive-lightbox-open');
+    root.querySelector('[data-lightbox-close]').focus();
+  }
+  function close() {
+    root.hidden = true;
+    document.body.classList.remove('gdrive-lightbox-open');
+    img.removeAttribute('src');
+  }
+  function next(delta) { openAt(index + delta); }
+
+  items.forEach(function (el) {
+    el.addEventListener('click', function () {
+      openAt(parseInt(el.getAttribute('data-gallery-index'), 10) || 0);
+    });
+  });
+  root.querySelectorAll('[data-lightbox-close]').forEach(function (el) {
+    el.addEventListener('click', close);
+  });
+  root.querySelector('[data-lightbox-prev]').addEventListener('click', function (e) { e.stopPropagation(); next(-1); });
+  root.querySelector('[data-lightbox-next]').addEventListener('click', function (e) { e.stopPropagation(); next(1); });
+  document.addEventListener('keydown', function (e) {
+    if (root.hidden) return;
+    if (e.key === 'Escape') close();
+    if (e.key === 'ArrowLeft') next(-1);
+    if (e.key === 'ArrowRight') next(1);
+  });
+})();
+</script>
+{{end}}

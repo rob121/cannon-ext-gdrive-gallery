@@ -1,0 +1,66 @@
+{{if .Notice}}<div class="admin-alert admin-alert-success">{{.Notice}}</div>{{end}}
+{{if .Error}}<div class="admin-alert admin-alert-danger">{{.Error}}</div>{{end}}
+
+<div class="admin-page-actions" style="margin-bottom:1rem;display:flex;gap:.5rem;flex-wrap:wrap;">
+  <a class="btn-admin-outline" href="{{.SetupURL}}" data-turbo-frame="_top"><i class="bi bi-gear"></i> Setup</a>
+  <form method="post" action="{{.BasePath}}/sync" class="admin-inline-form">
+    {{.CSRFField}}
+    <button type="submit" class="btn-admin-primary" {{if .Syncing}}disabled{{end}}>
+      <i class="bi bi-arrow-repeat"></i> {{if .Syncing}}Syncing…{{else}}Sync now{{end}}
+    </button>
+  </form>
+</div>
+
+<div class="admin-data-card" style="margin-bottom:1.25rem;">
+  <div class="admin-data-card-header">
+    <div class="admin-data-card-summary-main">
+      <h2 class="admin-data-card-title">Drive Gallery</h2>
+      <p class="admin-data-card-desc">
+        Root folder: <strong>{{if .Conn.FolderName}}{{.Conn.FolderName}}{{else}}(not selected){{end}}</strong>
+        {{if .Conn.AccountEmail}} · {{.Conn.AccountEmail}}{{end}}
+      </p>
+      <p class="admin-cell-muted mb-0">
+        Last sync: {{if .Conn.LastSyncAt}}{{.Conn.LastSyncAt}}{{else}}never{{end}}
+        · Folders: {{.FolderCount}} · Images: {{.ImageCount}}
+      </p>
+      {{if .Conn.LastSyncError}}<p class="admin-alert admin-alert-danger" style="margin-top:.75rem;">{{.Conn.LastSyncError}}</p>{{end}}
+    </div>
+  </div>
+</div>
+
+<div class="admin-data-card">
+  <div class="admin-data-card-header">
+    <div class="admin-data-card-summary-main">
+      <h2 class="admin-data-card-title">Synced galleries</h2>
+      <p class="admin-data-card-desc">Edit each folder’s public page title and description (shown on the gallery index and folder page). Open a gallery to caption images.</p>
+    </div>
+  </div>
+  <div class="admin-table-scroll">
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th>Title</th>
+          <th>Description</th>
+          <th>Path</th>
+          <th>Status</th>
+          <th class="admin-col-actions"></th>
+        </tr>
+      </thead>
+      <tbody>
+        {{range .Folders}}
+        <tr>
+          <td>{{if .Title}}{{.Title}}{{else}}{{.Name}}{{end}}</td>
+          <td class="admin-cell-muted">{{if .Description}}{{.Description}}{{else}}<em>No description yet</em>{{end}}</td>
+          <td class="admin-cell-muted">{{.Path}}</td>
+          <td>{{.Status}}</td>
+          <td class="admin-col-actions">
+            <a class="btn-admin-outline btn-admin-sm" href="{{$.BasePath}}/folder/{{.ID}}" data-turbo-frame="_top">Edit</a>
+          </td>
+        </tr>
+        {{else}}
+        <tr><td colspan="5" class="admin-cell-muted">No folders synced yet. Complete Setup, then Sync now.</td></tr>
+        {{end}}
+      </tbody>
+    </table>
+  </div>
+</div>

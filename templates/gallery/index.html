@@ -1,0 +1,30 @@
+<section class="gdrive-gallery-index py-4 w-100">
+  <header class="mb-4">
+    <h1 class="mb-2">{{.Title}}</h1>
+    {{if .IntroductionHTML}}
+    <div class="gdrive-gallery-desc">{{.IntroductionHTML}}</div>
+    {{else if .Introduction}}
+    <div class="lead text-muted gdrive-gallery-desc">{{nl2br .Introduction}}</div>
+    {{end}}
+  </header>
+  <div class="row g-4">
+    {{range .Folders}}
+    <div class="col-12 col-sm-6 col-lg-4">
+      <a class="text-decoration-none h-100 d-block" href="{{.URL}}">
+        <div class="card h-100">
+          <div class="card-body">
+            <h2 class="h5 card-title mb-2">{{if .Title}}{{.Title}}{{else}}{{.Name}}{{end}}</h2>
+            {{if .Description}}
+            <p class="card-text text-muted small mb-0">{{.Description}}</p>
+            {{else}}
+            <p class="card-text text-muted small mb-0 fst-italic">Open gallery</p>
+            {{end}}
+          </div>
+        </div>
+      </a>
+    </div>
+    {{else}}
+    <div class="col-12"><div class="alert alert-info mb-0">No galleries synced yet.</div></div>
+    {{end}}
+  </div>
+</section>

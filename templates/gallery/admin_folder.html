@@ -1,0 +1,74 @@
+{{if .Notice}}<div class="admin-alert admin-alert-success">{{.Notice}}</div>{{end}}
+{{if .Error}}<div class="admin-alert admin-alert-danger">{{.Error}}</div>{{end}}
+
+<div class="admin-page-actions" style="margin-bottom:1rem;">
+  <a class="btn-admin-outline" href="{{.BasePath}}" data-turbo-frame="_top">← Galleries</a>
+</div>
+
+<div class="admin-data-card" style="margin-bottom:1.25rem;">
+  <div class="admin-data-card-header">
+    <div class="admin-data-card-summary-main">
+      <h2 class="admin-data-card-title">{{.Folder.Title}}</h2>
+      <p class="admin-data-card-desc admin-cell-muted mb-0">{{.Folder.Path}}</p>
+    </div>
+  </div>
+  <form method="post" action="{{.BasePath}}/folder/{{.Folder.ID}}" style="padding:1rem;display:grid;gap:1rem;max-width:40rem;">
+    {{.CSRFField}}
+    <input type="hidden" name="action" value="save_folder">
+    <label>
+      <span class="admin-form-label">Title</span>
+      <input class="admin-form-control" type="text" name="title" value="{{.Folder.Title}}">
+    </label>
+    <label>
+      <span class="admin-form-label">Page description</span>
+      <textarea class="admin-form-control" name="description" rows="4" placeholder="Intro text shown under the title on this gallery’s public page and on the gallery index card.">{{.Folder.Description}}</textarea>
+      <span class="admin-form-help">Stored locally (not overwritten by Drive sync). Plain text; line breaks are preserved.</span>
+    </label>
+    <div><button type="submit" class="btn-admin-primary">Save gallery</button></div>
+  </form>
+</div>
+
+<div class="admin-data-card">
+  <div class="admin-data-card-header">
+    <div class="admin-data-card-summary-main">
+      <h2 class="admin-data-card-title">Images</h2>
+      <p class="admin-data-card-desc">Descriptions are stored locally; image files stay on Drive.</p>
+    </div>
+  </div>
+  <div class="admin-table-scroll">
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th style="width:6rem;">Preview</th>
+          <th>Name</th>
+          <th>Description</th>
+          <th class="admin-col-actions"></th>
+        </tr>
+      </thead>
+      <tbody>
+        {{range .Images}}
+        <tr>
+          <td>
+            {{if .ThumbURL}}<img src="{{.ThumbURL}}" alt="" style="width:64px;height:64px;object-fit:cover;border-radius:.25rem;">{{end}}
+          </td>
+          <td>{{.Name}}</td>
+          <td>
+            <form method="post" action="{{$.BasePath}}/folder/{{$.Folder.ID}}" class="admin-inline-form" style="display:flex;gap:.5rem;align-items:flex-start;width:100%;">
+              {{$.CSRFField}}
+              <input type="hidden" name="action" value="save_image">
+              <input type="hidden" name="image_id" value="{{.ID}}">
+              <textarea class="admin-form-control" name="description" rows="2" style="flex:1;">{{.Description}}</textarea>
+              <button type="submit" class="btn-admin-outline btn-admin-sm">Save</button>
+            </form>
+          </td>
+          <td class="admin-col-actions">
+            {{if .ViewURL}}<a class="btn-admin-outline btn-admin-sm" href="{{.ViewURL}}" target="_blank" rel="noopener">Open</a>{{end}}
+          </td>
+        </tr>
+        {{else}}
+        <tr><td colspan="4" class="admin-cell-muted">No images in this folder.</td></tr>
+        {{end}}
+      </tbody>
+    </table>
+  </div>
+</div>
