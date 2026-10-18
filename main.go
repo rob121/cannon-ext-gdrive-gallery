@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"html/template"
 	"log"
+	"os"
 	"strings"
 	"sync"
 
@@ -71,7 +72,10 @@ type galleryApp struct {
 
 func main() {
 	app, s := newServer()
-	app.startScheduler()
+	// --data=… is answered inside Run before site/socket; skip scheduler startup for that path.
+	if _, dataQuery := extension.DataArgKey(os.Args); !dataQuery {
+		app.startScheduler()
+	}
 	if err := s.Run(); err != nil {
 		log.Fatal(err)
 	}
