@@ -19,5 +19,6 @@ cp cannon-ext-gdrive-gallery /path/to/extensions/
 4. **Sync now**, then add routes:
    - **Gallery Index** → e.g. `/gallery`
    - **Gallery Folder** → e.g. `/gallery/*` (or bind a specific folder)
+5. Optional: **Configuration → Sync Schedule** — enable automatic sync and set interval minutes (default 60, minimum 5).
 
 Subfolders become separate gallery pages and can be linked from menus via the folder page type.

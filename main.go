@@ -2,6 +2,7 @@ package main
 
 import (
 	"embed"
+	"encoding/json"
 	"html/template"
 	"log"
 	"strings"
@@ -17,14 +18,44 @@ var templateFiles embed.FS
 var helpFiles embed.FS
 
 const (
-	extensionName        = "cannon-ext-gdrive-gallery"
-	extensionTitle       = "Google Drive Gallery"
-	extensionDescription = "Photo galleries sourced from a Google Drive folder. Images stay on Drive (anyone-with-link); folder and image metadata is cached locally with editable descriptions."
-	extensionVersion     = "0.1.3"
-	updateURLBase        = "https://github.com/rob121/cannon-ext-gdrive-gallery/releases/download"
-	defaultAdminMenu     = "Drive Gallery"
-	connectionSection    = "connection"
+	extensionName              = "cannon-ext-gdrive-gallery"
+	extensionTitle             = "Google Drive Gallery"
+	extensionDescription       = "Photo galleries sourced from a Google Drive folder. Images stay on Drive (anyone-with-link); folder and image metadata is cached locally with editable descriptions."
+	extensionVersion           = "0.1.4"
+	updateURLBase              = "https://github.com/rob121/cannon-ext-gdrive-gallery/releases/download"
+	defaultAdminMenu           = "Drive Gallery"
+	connectionSection          = "connection"
+	scheduleSection            = "schedule"
+	defaultSyncIntervalMinutes = 60
+	minSyncIntervalMinutes     = 5
 )
+
+var scheduleConfigSchema = json.RawMessage(`{
+  "type": "object",
+  "properties": {
+    "enabled": {
+      "type": "boolean",
+      "title": "Enable Scheduled Sync",
+      "default": false,
+      "description": "When enabled, the gallery syncs from Google Drive automatically on the interval below."
+    },
+    "interval_minutes": {
+      "type": "integer",
+      "title": "Sync Interval (minutes)",
+      "minimum": 5,
+      "default": 60,
+      "description": "How often to sync folder and image metadata from Drive. Minimum 5 minutes."
+    }
+  }
+}`)
+
+var scheduleConfigUI = json.RawMessage(`{
+  "type": "VerticalLayout",
+  "elements": [
+    {"type": "Control", "scope": "#/properties/enabled"},
+    {"type": "Control", "scope": "#/properties/interval_minutes"}
+  ]
+}`)
 
 type galleryApp struct {
 	info          extension.Info
@@ -35,10 +66,12 @@ type galleryApp struct {
 	mu            sync.Mutex
 	syncing       bool
 	oauthState    sync.Map
+	scheduler     *galleryScheduler
 }
 
 func main() {
-	_, s := newServer()
+	app, s := newServer()
+	app.startScheduler()
 	if err := s.Run(); err != nil {
 		log.Fatal(err)
 	}
@@ -60,6 +93,7 @@ func newServer() (*galleryApp, *extension.Server) {
 		foldersTable:  extension.TableName(info.TablePrefix(), "folders"),
 		imagesTable:   extension.TableName(info.TablePrefix(), "images"),
 	}
+	app.scheduler = newGalleryScheduler(app)
 
 	s := extension.New(info)
 	s.EmbedTemplates(templateFiles, "templates")
@@ -71,11 +105,30 @@ func newServer() (*galleryApp, *extension.Server) {
 		{ID: "gallery.edit", DisplayName: "Edit gallery metadata", Description: "Edit image descriptions and gallery titles.", Category: "gallery"},
 		{ID: "gallery.setup", DisplayName: "Configure Drive gallery", Description: "Connect Google Drive and choose the gallery root folder.", Category: "gallery", Dangerous: true},
 	})
+	s.OnConfiguration(extension.MapConfiguration([]extension.ConfigurationDefinition{
+		{
+			ID:       scheduleSection,
+			Title:    "Sync Schedule",
+			Schema:   scheduleConfigSchema,
+			UISchema: scheduleConfigUI,
+		},
+	}, configStore{table: app.settingsTable, onSave: app.onScheduleSaved}))
 	s.OnPageList(app.pageDefinitions)
 	s.RegisterPage(extension.PageDefinition{ID: "gallery-index", Title: "Gallery Index"}, app.indexPage)
 	s.RegisterPage(extension.PageDefinition{ID: "gallery-folder", Title: "Gallery Folder"}, app.folderPage)
 	s.HandleAdmin("/admin/", app.admin)
 	return app, s
+}
+
+func (app *galleryApp) onScheduleSaved(section string, data map[string]any) {
+	if section != scheduleSection {
+		return
+	}
+	app.scheduler.reload()
+}
+
+func (app *galleryApp) startScheduler() {
+	app.scheduler.reload()
 }
 
 func (app *galleryApp) install(req extension.WireRequest) error {

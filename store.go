@@ -12,6 +12,18 @@ import (
 	"gorm.io/gorm"
 )
 
+type scheduleSettings struct {
+	Enabled         bool `json:"enabled"`
+	IntervalMinutes int  `json:"interval_minutes"`
+}
+
+func (s scheduleSettings) intervalMinutes() int {
+	if s.IntervalMinutes < minSyncIntervalMinutes {
+		return defaultSyncIntervalMinutes
+	}
+	return s.IntervalMinutes
+}
+
 type connectionSettings struct {
 	ClientID      string `json:"client_id"`
 	ClientSecret  string `json:"client_secret"`
@@ -63,7 +75,8 @@ type galleryImage struct {
 }
 
 type configStore struct {
-	table string
+	table  string
+	onSave func(section string, data map[string]any)
 }
 
 func (s configStore) Load(section string) (map[string]any, error) {
@@ -79,11 +92,32 @@ func (s configStore) Save(section string, data map[string]any) error {
 	if err != nil {
 		return err
 	}
-	return extension.DBConfigurationStore(db, s.table).Save(section, data)
+	if err := extension.DBConfigurationStore(db, s.table).Save(section, data); err != nil {
+		return err
+	}
+	if s.onSave != nil {
+		s.onSave(section, data)
+	}
+	return nil
 }
 
 func (app *galleryApp) settingsStore() configStore {
 	return configStore{table: app.settingsTable}
+}
+
+func (app *galleryApp) loadSchedule() (scheduleSettings, error) {
+	data, err := app.settingsStore().Load(scheduleSection)
+	if err != nil {
+		return scheduleSettings{}, err
+	}
+	cfg := scheduleSettings{
+		Enabled:         boolValue(data, "enabled"),
+		IntervalMinutes: intValue(data, "interval_minutes", defaultSyncIntervalMinutes),
+	}
+	if cfg.IntervalMinutes < minSyncIntervalMinutes {
+		cfg.IntervalMinutes = defaultSyncIntervalMinutes
+	}
+	return cfg, nil
 }
 
 func (app *galleryApp) loadConnection() (connectionSettings, error) {

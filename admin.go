@@ -104,19 +104,28 @@ func (app *galleryApp) adminHome(req extension.WireRequest, adminURL *url.URL, b
 	_ = db.Table(app.foldersTable).Where("status = ?", "active").Count(&folderCount).Error
 	_ = db.Table(app.imagesTable).Where("status = ?", "active").Count(&imageCount).Error
 
+	schedule, _ := app.loadSchedule()
+	scheduleLabel := "off"
+	if schedule.Enabled {
+		scheduleLabel = "every " + strconv.Itoa(schedule.intervalMinutes()) + " minutes"
+	}
+
 	return app.render("gallery/admin.html", map[string]any{
-		"Title":       "Drive Gallery",
-		"Subtitle":    "Sync Google Drive folders into local gallery metadata.",
-		"BasePath":    basePath,
-		"SetupURL":    basePath + "/setup",
-		"CSRFField":   csrf,
-		"Conn":        conn,
-		"Folders":     folders,
-		"FolderCount": folderCount,
-		"ImageCount":  imageCount,
-		"Syncing":     app.isSyncing(),
-		"Notice":      adminURL.Query().Get("notice"),
-		"Error":       adminURL.Query().Get("error"),
+		"Title":         "Drive Gallery",
+		"Subtitle":      "Sync Google Drive folders into local gallery metadata.",
+		"BasePath":      basePath,
+		"SetupURL":      basePath + "/setup",
+		"SettingsURL":   "/admin/configuration/extensions/" + url.PathEscape(extensionName),
+		"CSRFField":     csrf,
+		"Conn":          conn,
+		"Folders":       folders,
+		"FolderCount":   folderCount,
+		"ImageCount":    imageCount,
+		"Syncing":       app.isSyncing(),
+		"Schedule":      schedule,
+		"ScheduleLabel": scheduleLabel,
+		"Notice":        adminURL.Query().Get("notice"),
+		"Error":         adminURL.Query().Get("error"),
 	})
 }
 

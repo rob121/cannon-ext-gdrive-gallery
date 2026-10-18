@@ -9,6 +9,12 @@ Photo galleries sourced from a Google Drive folder. Images stay on Drive (shared
 3. Add a Google OAuth Web client (same pattern as Drive Backup / rclone).
 4. Register redirect URI: `/admin/extension-apps/cannon-ext-gdrive-gallery/oauth/callback`
 5. Connect Drive, choose the **root gallery folder**, then **Sync**.
+6. Optionally open **Configuration → Sync Schedule** to enable automatic sync and set the interval (minutes).
+
+## Sync
+
+- **Sync now** on the Drive Gallery admin page runs a full recursive sync immediately.
+- **Scheduled sync** (optional) repeats on the configured interval (default 60 minutes, minimum 5). Turn it on under the extension’s Sync Schedule settings.
 
 ## Public pages
 

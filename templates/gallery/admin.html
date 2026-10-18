@@ -3,6 +3,7 @@
 
 <div class="admin-page-actions" style="margin-bottom:1rem;display:flex;gap:.5rem;flex-wrap:wrap;">
   <a class="btn-admin-outline" href="{{.SetupURL}}" data-turbo-frame="_top"><i class="bi bi-gear"></i> Setup</a>
+  <a class="btn-admin-outline" href="{{.SettingsURL}}" data-turbo-frame="_top"><i class="bi bi-clock-history"></i> Sync schedule</a>
   <form method="post" action="{{.BasePath}}/sync" class="admin-inline-form">
     {{.CSRFField}}
     <button type="submit" class="btn-admin-primary" {{if .Syncing}}disabled{{end}}>
@@ -21,6 +22,7 @@
       </p>
       <p class="admin-cell-muted mb-0">
         Last sync: {{if .Conn.LastSyncAt}}{{.Conn.LastSyncAt}}{{else}}never{{end}}
+        · Schedule: {{.ScheduleLabel}}
         · Folders: {{.FolderCount}} · Images: {{.ImageCount}}
       </p>
       {{if .Conn.LastSyncError}}<p class="admin-alert admin-alert-danger" style="margin-top:.75rem;">{{.Conn.LastSyncError}}</p>{{end}}
