@@ -25,41 +25,41 @@ type connectionSettings struct {
 }
 
 type galleryFolder struct {
-	ID           uint      `gorm:"primaryKey;column:folder_id"`
-	DriveID      string    `gorm:"column:drive_id;size:128;not null;uniqueIndex"`
-	ParentDriveID string   `gorm:"column:parent_drive_id;size:128;index"`
-	Name         string    `gorm:"column:name;size:255;not null"`
-	Title        string    `gorm:"column:title;size:255"`
-	Slug         string    `gorm:"column:slug;size:255;not null;uniqueIndex"`
-	Path         string    `gorm:"column:path;size:1024;not null;index"` // slash-separated slugs from root children
-	Description  string    `gorm:"column:description;type:text"`
-	Depth        int       `gorm:"column:depth;not null;default:0;index"`
-	SortOrder    int       `gorm:"column:sort_order;not null;default:0;index"`
-	Status       string    `gorm:"column:status;size:16;not null;default:active;index"`
-	SyncedAt     time.Time `gorm:"column:synced_at"`
-	CreatedAt    time.Time `gorm:"column:created_at"`
-	UpdatedAt    time.Time `gorm:"column:updated_at"`
+	ID            uint      `gorm:"primaryKey;column:folder_id"`
+	DriveID       string    `gorm:"column:drive_id;size:128;not null;uniqueIndex"`
+	ParentDriveID string    `gorm:"column:parent_drive_id;size:128;index"`
+	Name          string    `gorm:"column:name;size:255;not null"`
+	Title         string    `gorm:"column:title;size:255"`
+	Slug          string    `gorm:"column:slug;size:255;not null;uniqueIndex"`
+	Path          string    `gorm:"column:path;size:1024;not null;index"` // slash-separated slugs from root children
+	Description   string    `gorm:"column:description;type:text"`
+	Depth         int       `gorm:"column:depth;not null;default:0;index"`
+	SortOrder     int       `gorm:"column:sort_order;not null;default:0;index"`
+	Status        string    `gorm:"column:status;size:16;not null;default:active;index"`
+	SyncedAt      time.Time `gorm:"column:synced_at"`
+	CreatedAt     time.Time `gorm:"column:created_at"`
+	UpdatedAt     time.Time `gorm:"column:updated_at"`
 }
 
 type galleryImage struct {
-	ID           uint      `gorm:"primaryKey;column:image_id"`
-	DriveFileID  string    `gorm:"column:drive_file_id;size:128;not null;uniqueIndex"`
-	FolderDriveID string   `gorm:"column:folder_drive_id;size:128;not null;index"`
-	Name         string    `gorm:"column:name;size:255;not null"`
-	Slug         string    `gorm:"column:slug;size:255;not null;index"`
-	MimeType     string    `gorm:"column:mime_type;size:128"`
-	ViewURL      string    `gorm:"column:view_url;size:1024"`
-	ThumbURL     string    `gorm:"column:thumb_url;size:1024"`
-	Description  string    `gorm:"column:description;type:text"`
-	Width        int64     `gorm:"column:width"`
-	Height       int64     `gorm:"column:height"`
-	SizeBytes    int64     `gorm:"column:size_bytes"`
-	ModifiedTime string    `gorm:"column:modified_time;size:64"`
-	SortOrder    int       `gorm:"column:sort_order;not null;default:0;index"`
-	Status       string    `gorm:"column:status;size:16;not null;default:active;index"`
-	SyncedAt     time.Time `gorm:"column:synced_at"`
-	CreatedAt    time.Time `gorm:"column:created_at"`
-	UpdatedAt    time.Time `gorm:"column:updated_at"`
+	ID            uint      `gorm:"primaryKey;column:image_id"`
+	DriveFileID   string    `gorm:"column:drive_file_id;size:128;not null;uniqueIndex"`
+	FolderDriveID string    `gorm:"column:folder_drive_id;size:128;not null;index"`
+	Name          string    `gorm:"column:name;size:255;not null"`
+	Slug          string    `gorm:"column:slug;size:255;not null;index"`
+	MimeType      string    `gorm:"column:mime_type;size:128"`
+	ViewURL       string    `gorm:"column:view_url;size:1024"`
+	ThumbURL      string    `gorm:"column:thumb_url;size:1024"`
+	Description   string    `gorm:"column:description;type:text"`
+	Width         int64     `gorm:"column:width"`
+	Height        int64     `gorm:"column:height"`
+	SizeBytes     int64     `gorm:"column:size_bytes"`
+	ModifiedTime  string    `gorm:"column:modified_time;size:64"`
+	SortOrder     int       `gorm:"column:sort_order;not null;default:0;index"`
+	Status        string    `gorm:"column:status;size:16;not null;default:active;index"`
+	SyncedAt      time.Time `gorm:"column:synced_at"`
+	CreatedAt     time.Time `gorm:"column:created_at"`
+	UpdatedAt     time.Time `gorm:"column:updated_at"`
 }
 
 type configStore struct {
@@ -71,18 +71,12 @@ func (s configStore) Load(section string) (map[string]any, error) {
 	if err != nil {
 		return nil, err
 	}
-	if err := extension.MigrateConfigurationStore(db, s.table); err != nil {
-		return nil, err
-	}
 	return extension.DBConfigurationStore(db, s.table).Load(section)
 }
 
 func (s configStore) Save(section string, data map[string]any) error {
 	db, _, err := extension.OpenDB()
 	if err != nil {
-		return err
-	}
-	if err := extension.MigrateConfigurationStore(db, s.table); err != nil {
 		return err
 	}
 	return extension.DBConfigurationStore(db, s.table).Save(section, data)

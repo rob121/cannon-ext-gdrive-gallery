@@ -110,11 +110,11 @@ func (app *galleryApp) indexPage(item string, req extension.WireRequest) extensi
 	}
 	introHTML, introPlain := app.indexIntroduction(req)
 	return app.render("gallery/index.html", map[string]any{
-		"Title":           pageString(req, "title", "Gallery"),
+		"Title":            pageString(req, "title", "Gallery"),
 		"IntroductionHTML": introHTML,
-		"Introduction":    introPlain,
-		"Folders":         folders,
-		"PageItem":        item,
+		"Introduction":     introPlain,
+		"Folders":          folders,
+		"PageItem":         item,
 	})
 }
 

@@ -20,21 +20,21 @@ const (
 	extensionName        = "cannon-ext-gdrive-gallery"
 	extensionTitle       = "Google Drive Gallery"
 	extensionDescription = "Photo galleries sourced from a Google Drive folder. Images stay on Drive (anyone-with-link); folder and image metadata is cached locally with editable descriptions."
-	extensionVersion     = "0.1.2"
+	extensionVersion     = "0.1.3"
 	updateURLBase        = "https://github.com/rob121/cannon-ext-gdrive-gallery/releases/download"
 	defaultAdminMenu     = "Drive Gallery"
 	connectionSection    = "connection"
 )
 
 type galleryApp struct {
-	info           extension.Info
-	templates      *extension.Templates
-	settingsTable  string
-	foldersTable   string
-	imagesTable    string
-	mu             sync.Mutex
-	syncing        bool
-	oauthState     sync.Map
+	info          extension.Info
+	templates     *extension.Templates
+	settingsTable string
+	foldersTable  string
+	imagesTable   string
+	mu            sync.Mutex
+	syncing       bool
+	oauthState    sync.Map
 }
 
 func main() {
